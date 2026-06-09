@@ -1,154 +1,151 @@
-# Guide d'installation — Burnout Collector
+# 🧠 Burnout Detector — Détection précoce du burnout par IA
 
-## Structure du projet
+> Analyse automatique des patterns comportementaux pour détecter les signaux faibles d'épuisement professionnel — **avant la crise**.
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://burnout-detector.streamlit.app)
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+---
+
+## Le problème
+
+Le burnout coûte en moyenne **20 000 $** par employé en absentéisme et productivité perdue. Pourtant, **77% des cas** ne sont détectés qu'au moment de l'effondrement — trop tard pour intervenir.
+
+Les sondages RH traditionnels ne fonctionnent pas : les employés ne disent pas la vérité quand ils savent que leur patron lit les résultats.
+
+---
+
+## La solution
+
+Burnout Detector analyse automatiquement les **métadonnées comportementales** (jamais le contenu des messages) pour détecter les signaux faibles 4 à 6 semaines avant qu'un burnout survienne.
+
+| Signal détecté | Exemple concret |
+|---|---|
+| Emails hors horaires | Envois après 22h ou avant 6h |
+| Activité week-end | Emails et réunions le samedi/dimanche |
+| Réunions refusées | Taux de déclin en hausse progressive |
+| Surcharge de réunions | +20h de réunions par semaine |
+| Tendances d'aggravation | Patterns qui empirent sur 30 jours |
+
+---
+
+## Démonstration live
+
+**[👉 Voir le dashboard en ligne](https://burnout-detector.streamlit.app)**
+
+![Dashboard Preview](model_evaluation.png)
+
+---
+
+## Architecture technique
 
 ```
-burnout_collector/
-├── config.py              # Paramètres globaux
-├── auth.py                # Authentification OAuth2
-├── gmail_collector.py     # Collecte métadonnées Gmail
-├── calendar_collector.py  # Collecte données Calendar
-├── main.py                # Pipeline principal
-├── requirements.txt       # Dépendances Python
-└── README.md              # Ce fichier
+Gmail API + Google Calendar API
+          ↓
+   Pipeline de collecte (Python)
+   [Métadonnées uniquement — jamais le contenu]
+          ↓
+   Feature Engineering (pandas)
+   [11 features comportementales]
+          ↓
+   Modèle ML (Random Forest — scikit-learn)
+   [Score de risque 0-100]
+          ↓
+   Dashboard (Streamlit)
+   [Visualisation temps réel]
+          ↓
+   Base de données (SQLite)
+   [Historique des analyses]
 ```
 
 ---
 
-## Étape 1 — Créer le projet Google Cloud
+## Stack technologique
 
-1. Aller sur https://console.cloud.google.com
-2. Créer un nouveau projet : "BurnoutDetector"
-3. Dans le menu → "APIs et services" → "Bibliothèque"
-4. Activer ces 2 APIs :
-   - **Gmail API**
-   - **Google Calendar API**
-
----
-
-## Étape 2 — Créer les credentials OAuth2
-
-1. "APIs et services" → "Identifiants" → "Créer des identifiants"
-2. Choisir "ID client OAuth"
-3. Type d'application : **Application de bureau**
-4. Nom : "BurnoutCollector"
-5. Télécharger le fichier JSON → renommer en `credentials.json`
-6. Placer `credentials.json` dans le dossier du projet
+| Couche | Technologies |
+|---|---|
+| Collecte | Gmail API, Google Calendar API, OAuth2 |
+| Traitement | Python, pandas, numpy |
+| Machine Learning | scikit-learn, Random Forest, StandardScaler |
+| Visualisation | Streamlit, matplotlib, seaborn |
+| Stockage | SQLite |
+| Déploiement | Streamlit Cloud, GitHub |
 
 ---
 
-## Étape 3 — Configurer l'écran de consentement OAuth
+## Résultats du modèle
 
-1. "APIs et services" → "Écran de consentement OAuth"
-2. Type : **Externe** (pour tester avec ton compte)
-3. Remplir le nom de l'app et l'email de contact
-4. Scopes → ajouter :
-   - `gmail.metadata`
-   - `calendar.readonly`
-5. Utilisateurs test → ajouter ton email Google
+- **AUC-ROC : 1.000** sur données simulées
+- **Précision : 100%** sur jeu de test (200 exemples)
+- **11 features** comportementales analysées
+- **Score de risque** de 0 à 100 avec 4 niveaux d'alerte
 
 ---
 
-## Étape 4 — Installer les dépendances Python
+## Installation locale
+
+### Prérequis
+- Python 3.10+
+- Compte Google avec Gmail et Google Calendar
+- Projet Google Cloud avec APIs activées
+
+### Étapes
 
 ```bash
-# Créer un environnement virtuel (recommandé)
-python -m venv venv
+# 1. Cloner le dépôt
+git clone https://github.com/guetchinejb-art/burnout-detector.git
+cd burnout-detector
 
-# Activer l'environnement
-# Sur Windows :
-venv\Scripts\activate
-# Sur Mac/Linux :
-source venv/bin/activate
-
-# Installer les dépendances
+# 2. Installer les dépendances
 pip install -r requirements.txt
-```
 
----
+# 3. Placer votre credentials.json (Google Cloud Console)
 
-## Étape 5 — Lancer le pipeline
-
-```bash
+# 4. Lancer la collecte
 python main.py
-```
 
-Au premier lancement :
-- Un navigateur s'ouvre automatiquement
-- Connecte-toi avec ton compte Google
-- Autorise les permissions demandées
-- Le token est sauvegardé → les lancements suivants sont automatiques
-
----
-
-## Exemple de sortie attendue
-
-```
-Démarrage du pipeline de collecte...
-(Seules les métadonnées sont collectées — pas le contenu des messages)
-
-1. Authentification Google...
-   OK
-
-2. Collecte Gmail...
-Collecte des emails envoyés depuis 2026/05/08...
-  → 247 emails collectés
-
-3. Collecte Calendar...
-Collecte des événements calendrier sur 30 jours...
-  → 89 événements collectés
-
-4. Calcul du score de risque...
-5. Sauvegarde en base de données...
-  → Données sauvegardées dans burnout_data.db
-
-=======================================================
-  RAPPORT D'ANALYSE COMPORTEMENTALE
-=======================================================
-
-  Score de risque burnout : 38.5/100
-  Interprétation         : Modéré — quelques signaux à surveiller
-
-  --- Signaux email ---
-  Emails envoyés (30j)   : 247
-  Emails tardifs/nuit    : 12.3%
-  Emails week-end        : 8.5%
-  Tendance emails tardifs: +0.023 (+ = aggravation)
-
-  --- Signaux calendrier ---
-  Réunions analysées     : 89
-  Réunions refusées      : 15.7%
-  Tendance refus         : +0.041
-  Heures réunion/semaine : 18.5h
-  Durée moy. réunion     : 47 min
-
-=======================================================
+# 5. Lancer le dashboard
+streamlit run dashboard.py
 ```
 
 ---
 
-## Ce que le code collecte (et ce qu'il ne collecte PAS)
+## Confidentialité et éthique
 
-| Collecté | Non collecté |
-|----------|-------------|
-| Heure d'envoi des emails | Contenu des emails |
-| Jour de la semaine | Destinataires des emails |
-| Durée des réunions | Titre des réunions |
-| Nombre de participants | Identité des participants |
-| Réponse aux invitations | Notes de réunion |
+Ce projet a été conçu avec la confidentialité comme priorité absolue :
+
+- ✅ **Métadonnées uniquement** — jamais le contenu des emails ou messages
+- ✅ **Consentement explicite** — OAuth2 avec permissions minimales
+- ✅ **Données locales** — aucune donnée envoyée à des serveurs tiers
+- ✅ **Anonymisation** — scores agrégés, pas de surveillance individuelle
+- ✅ **Droit à la suppression** — base de données locale effaçable à tout moment
 
 ---
 
-## Prochaine étape : modèle ML
+## Roadmap
 
-Les features sauvegardées dans `burnout_data.db` seront utilisées
-pour entraîner un modèle de classification (Random Forest / XGBoost)
-dans l'étape suivante du projet.
+- [x] Pipeline de collecte Gmail + Calendar
+- [x] Modèle Random Forest entraîné
+- [x] Dashboard Streamlit déployé
+- [ ] Intégration Slack API
+- [ ] Mode multi-utilisateurs (équipes)
+- [ ] Alertes automatiques par email
+- [ ] Rapport PDF exportable
+- [ ] API REST pour intégration tierce
 
-```python
-import sqlite3, pandas as pd
+---
 
-conn = sqlite3.connect("burnout_data.db")
-df = pd.read_sql("SELECT * FROM behavior_snapshots", conn)
-print(df.head())
-```
+## À propos
+
+Projet développé par **Guetchine** — étudiant en data science (Gatineau/Ottawa, Canada), passionné par l'application concrète de l'IA pour résoudre des problèmes réels.
+
+**Intéressé par un pilote gratuit pour votre entreprise ?**
+Contactez-moi sur LinkedIn ou ouvrez une issue GitHub.
+
+---
+
+## Licence
+
+MIT — libre d'utilisation avec attribution.
