@@ -1,4 +1,4 @@
-# 🧠 Burnout Detector — Détection précoce du burnout par IA
+# 🧠 BurnoutDetector.ai — Détection précoce du burnout par IA
 
 > Analyse automatique des patterns comportementaux pour détecter les signaux faibles d'épuisement professionnel — **avant la crise**.
 
