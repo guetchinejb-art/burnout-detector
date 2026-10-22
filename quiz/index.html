@@ -1,0 +1,191 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Quiz Burnout Detector</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500&display=swap">
+<style>
+:root{--bg:#F7F5F2;--bg2:#EDEAE5;--surface:#FFFFFF;--border:#DDD9D2;--fg:#1A1714;--fg2:#6B6560;--accent:#E84E3A;--accent-bg:#FDF1EF;--accent2:#2B4380;--green:#1E7A4A;--green-bg:#EAF6EF;--amber:#C47B0B;--amber-bg:#FEF6E4;--red:#C42B1C;--red-bg:#FDECEA;--prog-track:#DDD9D2;--shadow:0 2px 12px rgba(26,23,20,.08);--radius:14px}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14110F;--bg2:#1E1B18;--surface:#252118;--border:#3A3530;--fg:#F0EDE8;--fg2:#9A948C;--accent:#F46550;--accent-bg:#2A1510;--accent2:#6B8FD4;--green:#3DBD72;--green-bg:#0E2418;--amber:#F0A233;--amber-bg:#251A06;--red:#F07068;--red-bg:#240E0C;--prog-track:#3A3530;--shadow:0 2px 12px rgba(0,0,0,.3);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14110F;--bg2:#1E1B18;--surface:#252118;--border:#3A3530;--fg:#F0EDE8;--fg2:#9A948C;--accent:#F46550;--accent-bg:#2A1510;--accent2:#6B8FD4;--green:#3DBD72;--green-bg:#0E2418;--amber:#F0A233;--amber-bg:#251A06;--red:#F07068;--red-bg:#240E0C;--prog-track:#3A3530;--shadow:0 2px 12px rgba(0,0,0,.3);color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.6;margin:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:2rem;min-height:100%}
+.wrap{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:0}
+.quiz-header{text-align:center;padding-block:2rem 1.5rem}
+.quiz-badge{display:inline-flex;align-items:center;gap:.4rem;background:var(--accent-bg);color:var(--accent);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.3rem .75rem;border-radius:99px;margin-bottom:1rem}
+h1{font-family:'Sora',sans-serif;font-size:clamp(1.6rem,5vw,2.2rem);font-weight:700;line-height:1.2;text-wrap:balance;margin:0 0 .75rem;color:var(--fg)}
+.quiz-sub{color:var(--fg2);font-size:.95rem;max-width:46ch;margin:0 auto}
+.progress-wrap{display:flex;align-items:center;gap:.75rem;padding:.5rem 0 1.25rem}
+.progress-track{flex:1;height:6px;background:var(--prog-track);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.progress-label{font-size:.78rem;font-weight:600;color:var(--fg2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem 1.5rem;box-shadow:var(--shadow)}
+.question-num{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem}
+.question-text{font-family:'Sora',sans-serif;font-size:1.05rem;font-weight:600;line-height:1.4;text-wrap:balance;margin:0 0 1.25rem}
+.question-context{font-size:.82rem;color:var(--fg2);margin:-.75rem 0 1rem;font-style:italic}
+.options{display:flex;flex-direction:column;gap:.55rem}
+.option{display:flex;align-items:flex-start;gap:.85rem;padding:.9rem 1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;background:var(--bg);text-align:left;width:100%;color:var(--fg);font-family:inherit;font-size:.92rem;line-height:1.4}
+.option:hover{border-color:var(--accent);background:var(--accent-bg)}
+.option.selected{border-color:var(--accent);background:var(--accent-bg)}
+.option-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);flex-shrink:0;margin-top:.1rem;transition:border-color .15s,background .15s;display:flex;align-items:center;justify-content:center}
+.option.selected .option-dot{border-color:var(--accent);background:var(--accent)}
+.option.selected .option-dot::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff}
+.option-label{flex:1;min-width:0}
+.nav{display:flex;justify-content:flex-end;gap:.75rem;padding-top:1.25rem}
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.7rem 1.4rem;border-radius:9px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:transform .12s,opacity .15s;border:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.9}
+.btn-secondary{background:var(--bg2);color:var(--fg2);border:1.5px solid var(--border)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.result-score-wrap{text-align:center;padding:1.25rem 0 1.5rem}
+.score-ring{width:110px;height:110px;margin:0 auto 1rem}
+.score-ring svg{width:100%;height:100%}
+.score-big{font-family:'Sora',sans-serif;font-size:1.4rem;font-weight:700;text-align:center}
+.score-level{font-size:.8rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:.3rem .8rem;border-radius:99px;display:inline-block;margin-top:.4rem}
+.level-low{background:var(--green-bg);color:var(--green)}
+.level-medium{background:var(--amber-bg);color:var(--amber)}
+.level-high,.level-critical{background:var(--red-bg);color:var(--red)}
+.result-interpretation{font-size:.95rem;line-height:1.65;color:var(--fg2);margin:1rem 0 0}
+.result-interpretation strong{color:var(--fg)}
+.signal-list{list-style:none;margin:1.25rem 0 0;padding:0;display:flex;flex-direction:column;gap:.5rem}
+.signal-item{display:flex;gap:.65rem;align-items:flex-start;font-size:.88rem;line-height:1.5}
+.signal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:.35rem}
+.dot-red{background:var(--red)}.dot-amber{background:var(--amber)}.dot-green{background:var(--green)}
+.divider{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+.cta-eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--accent2);margin-bottom:.4rem}
+.cta-title{font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:700;text-wrap:balance;margin:0 0 .4rem}
+.cta-sub{font-size:.85rem;color:var(--fg2);margin:0 0 1.25rem}
+.form-group{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.9rem}
+.form-label{font-size:.8rem;font-weight:600;color:var(--fg)}
+.form-input{padding:.65rem .85rem;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);color:var(--fg);font-family:inherit;font-size:.92rem;transition:border-color .15s;outline:none;width:100%}
+.form-input:focus{border-color:var(--accent2)}
+.btn-cta{width:100%;justify-content:center;padding:.85rem;font-size:.95rem;border-radius:10px;background:var(--accent);color:#fff;margin-top:.25rem}
+.privacy-note{font-size:.73rem;color:var(--fg2);text-align:center;margin-top:.65rem}
+.form-success{text-align:center;padding:1.5rem .5rem}
+.form-success .check-icon{width:52px;height:52px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:1.4rem}
+.form-success h3{font-family:'Sora',sans-serif;font-size:1.05rem;font-weight:700;margin:0 0 .4rem}
+.form-success p{font-size:.88rem;color:var(--fg2);margin:0 0 1.25rem}
+.app-link-card{background:var(--accent-bg);border:1.5px solid var(--accent);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem;margin-top:1rem;text-decoration:none;color:inherit;transition:transform .12s}
+.app-link-card:hover{transform:translateY(-2px)}
+.app-link-icon{width:44px;height:44px;flex-shrink:0;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem}
+.app-link-text strong{display:block;font-size:.92rem;font-weight:600;color:var(--fg)}
+.app-link-text span{font-size:.8rem;color:var(--fg2)}
+.share-row{display:flex;gap:.65rem;flex-wrap:wrap;margin-top:1rem}
+.share-btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1rem;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--bg2);color:var(--fg);transition:border-color .15s,transform .1s}
+.share-btn:hover{border-color:var(--accent2);color:var(--accent2)}
+.copy-feedback{font-size:.75rem;color:var(--green);font-weight:600;opacity:0;transition:opacity .3s}
+.copy-feedback.show{opacity:1}
+.screen{display:none}.screen.active{display:block}
+.intro-stats{display:flex;gap:.75rem;margin:1.5rem 0 1.75rem;flex-wrap:wrap}
+.stat-chip{flex:1 1 140px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;text-align:center}
+.stat-chip strong{display:block;font-family:'Sora',sans-serif;font-size:1.3rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.stat-chip span{font-size:.78rem;color:var(--fg2);line-height:1.3}
+.intro-note{font-size:.82rem;color:var(--fg2);display:flex;gap:.5rem;align-items:flex-start;padding:.75rem 1rem;background:var(--bg2);border-radius:8px;margin-bottom:1.5rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="screen active" id="screen-intro">
+    <div class="quiz-header">
+      <div class="quiz-badge">⏱ 3 minutes · 6 questions</div>
+      <h1>Votre équipe est-elle en risque de burnout?</h1>
+      <p class="quiz-sub">Un diagnostic gratuit basé sur les signaux comportementaux détectés par notre IA.</p>
+    </div>
+    <div class="card">
+      <div class="intro-stats">
+        <div class="stat-chip"><strong>47%</strong><span>des employés montrent des signaux de surcharge</span></div>
+        <div class="stat-chip"><strong>3×</strong><span>plus de turnover dans les équipes à risque</span></div>
+        <div class="stat-chip"><strong>72h</strong><span>délai moyen avant qu'un signal soit détecté</span></div>
+      </div>
+      <div class="intro-note"><span>🔒</span><span>Ce quiz analyse des comportements organisationnels généraux. Aucune donnée personnelle n'est collectée avant le formulaire de contact.</span></div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:.85rem;font-size:1rem;border-radius:10px;" onclick="startQuiz()">Démarrer le diagnostic →</button>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-quiz">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      <span class="progress-label" id="prog-label">1 / 6</span>
+    </div>
+    <div class="card" id="question-card">
+      <div class="question-num" id="q-num">Question 1</div>
+      <p class="question-text" id="q-text"></p>
+      <p class="question-context" id="q-ctx"></p>
+      <div class="options" id="q-options"></div>
+      <div class="nav">
+        <button class="btn btn-secondary" id="btn-back" onclick="prevQ()" style="display:none">← Retour</button>
+        <button class="btn btn-primary" id="btn-next" onclick="nextQ()" disabled>Suivant →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-result">
+    <div class="quiz-header" style="padding-bottom:.5rem">
+      <div class="quiz-badge" style="background:var(--green-bg);color:var(--green)">✓ Diagnostic terminé</div>
+      <h1>Votre résultat</h1>
+    </div>
+    <div class="card">
+      <div class="result-score-wrap">
+        <div class="score-ring">
+          <svg viewBox="0 0 110 110">
+            <circle cx="55" cy="55" r="48" fill="none" stroke="var(--prog-track)" stroke-width="10"/>
+            <circle cx="55" cy="55" r="48" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="301.6" stroke-dashoffset="301.6" id="score-arc" transform="rotate(-90 55 55)" style="transition:stroke-dashoffset 1s ease"/>
+          </svg>
+        </div>
+        <div class="score-big" id="result-score-text">—</div>
+        <div class="score-level" id="result-level-badge"></div>
+      </div>
+      <p class="result-interpretation" id="result-interp"></p>
+      <ul class="signal-list" id="result-signals"></ul>
+      <hr class="divider">
+      <div id="contact-section">
+        <div class="cta-eyebrow">Prochaine étape</div>
+        <h2 class="cta-title">Obtenez une analyse complète pour votre équipe</h2>
+        <p class="cta-sub">Notre IA analyse les signaux comportementaux réels (emails, calendrier) pour détecter le burnout avant qu'il frappe.</p>
+        <form id="contact-form" onsubmit="submitForm(event)">
+          <div class="form-group"><label class="form-label" for="f-name">Votre prénom & nom</label><input class="form-input" id="f-name" type="text" placeholder="ex. Marie Tremblay" required></div>
+          <div class="form-group"><label class="form-label" for="f-email">Courriel professionnel</label><input class="form-input" id="f-email" type="email" placeholder="marie@entreprise.ca" required></div>
+          <div class="form-group"><label class="form-label" for="f-company">Entreprise & taille d'équipe</label><input class="form-input" id="f-company" type="text" placeholder="ex. Acme Inc. · 25 employés" required></div>
+          <button type="submit" class="btn btn-cta">Réserver ma démo gratuite →</button>
+          <p class="privacy-note">🔒 Aucun spam. Vos données ne sont jamais revendues.</p>
+        </form>
+        <div class="form-success" id="form-success" hidden>
+          <div class="check-icon">✅</div>
+          <h3>Merci! On vous contacte dans 24h.</h3>
+          <p>Vous recevrez un courriel de confirmation à l'adresse fournie.</p>
+          <a href="https://burnout-detector-ai.streamlit.app" target="_blank" rel="noopener" class="app-link-card">
+            <div class="app-link-icon">🧠</div>
+            <div class="app-link-text"><strong>Essayer l'application complète</strong><span>Analyse vos données Gmail & Calendar réelles</span></div>
+          </a>
+        </div>
+      </div>
+      <hr class="divider">
+      <p style="font-size:.82rem;font-weight:600;color:var(--fg2);margin:0 0 .5rem">Partager ce quiz :</p>
+      <div class="share-row">
+        <button class="share-btn" onclick="shareLinkedIn()">LinkedIn</button>
+        <button class="share-btn" onclick="copyLink()">Copier le lien</button>
+        <span class="copy-feedback" id="copy-fb">Copié !</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS=[{text:"À quelle fréquence des membres de votre équipe envoient-ils des messages après 20h ou durant le week-end?",ctx:"Pour les managers : observez les emails/Slack envoyés hors heures de bureau.",options:[{label:"Rarement — c'est l'exception",score:0},{label:"Parfois, 1-2 fois par semaine",score:1},{label:"Souvent, plusieurs fois par semaine",score:2},{label:"Quotidiennement, c'est la norme ici",score:3}]},{text:"Comment décririez-vous le niveau d'énergie général de votre équipe ces 30 derniers jours?",ctx:"Comment vous sentez-vous au début et à la fin de la journée de travail?",options:[{label:"Énergique et motivé(e)",score:0},{label:"Correct, quelques baisses normales",score:1},{label:"Fatigué(e), récupération difficile",score:2},{label:"Épuisé(e) en permanence",score:3}]},{text:"Quelle est la tendance des absences et refus de réunions dans votre équipe?",ctx:"Décliners de réunions, congés maladie courts répétés, délais manqués.",options:[{label:"Stable ou en baisse",score:0},{label:"Légère hausse, probablement conjoncturelle",score:1},{label:"Hausse notable depuis 1-2 mois",score:2},{label:"Forte hausse, situation préoccupante",score:3}]},{text:"Comment se déroulent les échanges d'équipe en ce moment?",ctx:"Qualité des interactions : réunions, communications écrites, ambiance générale.",options:[{label:"Ouverts, collaboratifs, constructifs",score:0},{label:"Fonctionnels, quelques tensions ponctuelles",score:1},{label:"Tendus, moins de collaboration spontanée",score:2},{label:"Conflictuels ou silencieux, isolement visible",score:3}]},{text:"Quelle est la charge de travail perçue vs la capacité réelle de votre équipe?",ctx:"Y a-t-il un écart croissant entre ce qui est demandé et ce qui peut être livré?",options:[{label:"Bien équilibrée — défi stimulant",score:0},{label:"Légèrement chargée, gérable à court terme",score:1},{label:"Surchargée, reports fréquents de livrables",score:2},{label:"Insoutenable, l'équipe est constamment en mode crise",score:3}]},{text:"Quelle est la dernière fois que votre équipe a pu déconnecter complètement?",ctx:"Vacances réelles, weekend sans penser au travail, boundaries respectées.",options:[{label:"Récemment — moins d'un mois",score:0},{label:"Il y a 1-3 mois",score:1},{label:"Il y a plus de 3 mois",score:2},{label:"On ne déconnecte plus vraiment",score:3}]}];
+let current=0,answers=new Array(QUESTIONS.length).fill(null);
+function startQuiz(){show('screen-quiz');renderQuestion()}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+function renderQuestion(){const q=QUESTIONS[current],n=current+1,total=QUESTIONS.length;document.getElementById('prog-fill').style.width=`${(n-1)/total*100}%`;document.getElementById('prog-label').textContent=`${n} / ${total}`;document.getElementById('q-num').textContent=`Question ${n}`;document.getElementById('q-text').textContent=q.text;const ctx=document.getElementById('q-ctx');ctx.textContent=q.ctx;ctx.hidden=!q.ctx;const opts=document.getElementById('q-options');opts.innerHTML='';q.options.forEach((opt,i)=>{const btn=document.createElement('button');btn.className='option'+(answers[current]===i?' selected':'');btn.innerHTML=`<span class="option-dot"></span><span class="option-label">${opt.label}</span>`;btn.addEventListener('click',()=>selectOption(i));opts.appendChild(btn)});document.getElementById('btn-back').style.display=current>0?'':'none';const btnNext=document.getElementById('btn-next');btnNext.disabled=answers[current]===null;btnNext.textContent=current===total-1?'Voir mon résultat →':'Suivant →'}
+function selectOption(idx){answers[current]=idx;document.querySelectorAll('.option').forEach((btn,i)=>btn.classList.toggle('selected',i===idx));document.getElementById('btn-next').disabled=false}
+function nextQ(){if(answers[current]===null)return;if(current<QUESTIONS.length-1){current++;renderQuestion()}else{showResult()}}
+function prevQ(){if(current>0){current--;renderQuestion()}}
+function showResult(){const raw=answers.reduce((sum,a,i)=>sum+(a!==null?QUESTIONS[i].options[a].score:0),0),max=QUESTIONS.length*3,pct=Math.round(raw/max*100);let level,levelClass,color,interp,signals;if(pct<=25){level='Risque Faible';levelClass='level-low';color='var(--green)';interp='<strong>Bonne nouvelle</strong> — les signaux observés sont rassurants. Votre équipe semble maintenir un équilibre sain.';signals=[{dot:'dot-green',text:"Aucun signal d'alerte majeur identifié"},{dot:'dot-green',text:'Équilibre travail/vie personnelle apparemment préservé'},{dot:'dot-amber',text:'Recommandé : évaluation annuelle des niveaux de charge'}]}else if(pct<=50){level='Risque Modéré';levelClass='level-medium';color='var(--amber)';interp='<strong>Attention préventive requise</strong> — plusieurs signaux indiquent une tension croissante. Ce stade est le meilleur moment pour intervenir.';signals=[{dot:'dot-amber',text:'Signes de surcharge intermittente détectés'},{dot:'dot-amber',text:'Risque de progression dans 4-8 semaines sans action'},{dot:'dot-green',text:"Fenêtre d'intervention préventive encore ouverte"}]}else if(pct<=75){level='Risque Élevé';levelClass='level-high';color='var(--red)';interp='<strong>Intervention recommandée rapidement</strong> — les signaux montrent une surcharge soutenue. Sans action, le risque de burnout clinique augmente significativement.';signals=[{dot:'dot-red',text:'Surcharge chronique probable — signaux comportementaux multiples'},{dot:'dot-red',text:"Risque accru d'absentéisme et de turnover"},{dot:'dot-amber',text:'Une analyse détaillée est fortement conseillée'}]}else{level='Risque Critique';levelClass='level-critical';color='var(--red)';interp='<strong>Situation critique — action immédiate nécessaire</strong> — les indicateurs suggèrent un burnout avancé ou imminent.';signals=[{dot:'dot-red',text:'Signaux forts de burnout avancé ou imminent'},{dot:'dot-red',text:'Coût estimé : entre 50 000$ et 200 000$ par départ'},{dot:'dot-red',text:"Recommandé : analyse IA + plan d'intervention"}]}
+document.getElementById('result-score-text').textContent=`Score : ${pct}/100`;const badge=document.getElementById('result-level-badge');badge.textContent=level;badge.className=`score-level ${levelClass}`;const arc=document.getElementById('score-arc');arc.style.stroke=color;setTimeout(()=>{arc.style.strokeDashoffset=301.6*(1-pct/100)},100);document.getElementById('result-interp').innerHTML=interp;document.getElementById('result-signals').innerHTML=signals.map(s=>`<li class="signal-item"><span class="signal-dot ${s.dot}"></span><span>${s.text}</span></li>`).join('');show('screen-result')}
+function submitForm(e){e.preventDefault();try{const leads=JSON.parse(localStorage.getItem('burnout_leads')||'[]');leads.push({name:document.getElementById('f-name').value,email:document.getElementById('f-email').value,company:document.getElementById('f-company').value,ts:new Date().toISOString()});localStorage.setItem('burnout_leads',JSON.stringify(leads))}catch(_){}document.getElementById('contact-form').hidden=true;document.getElementById('form-success').hidden=false}
+function shareLinkedIn(){const text=encodeURIComponent('🔥 Votre équipe est-elle en risque de burnout? Faites ce test gratuit de 3 minutes. #BienEtreAuTravail #RH');window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(location.href)}&summary=${text}`,'_blank','noopener')}
+function copyLink(){const fb=document.getElementById('copy-fb');navigator.clipboard.writeText(location.href).then(()=>{fb.classList.add('show');setTimeout(()=>fb.classList.remove('show'),2500)}).catch(()=>{const ta=document.createElement('textarea');ta.value=location.href;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();fb.classList.add('show');setTimeout(()=>fb.classList.remove('show'),2500)})}
+</script>
+</body>
+</html>
