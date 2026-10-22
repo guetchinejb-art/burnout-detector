@@ -2,7 +2,8 @@
 
 > Analyse automatique des patterns comportementaux pour détecter les signaux faibles d'épuisement professionnel — **avant la crise**.
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://burnout-detector.streamlit.app)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://burnout-detector-ai.streamlit.app)
+[![Quiz](https://img.shields.io/badge/Quiz-Diagnostic%20gratuit-brightgreen.svg)](https://guetchinejb-art.github.io/burnout-detector/quiz/)
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-ML-orange)
 ![License](https://img.shields.io/badge/License-Proprietary-red)
@@ -33,7 +34,9 @@ Burnout Detector analyse automatiquement les **métadonnées comportementales** 
 
 ## Démonstration live
 
-**[👉 Voir le dashboard en ligne](https://burnout-detector.streamlit.app)**
+**[👉 Voir le dashboard en ligne](https://burnout-detector-ai.streamlit.app)**
+
+📋 **[Quiz diagnostic gratuit (3 min)](https://guetchinejb-art.github.io/burnout-detector/quiz/)** — évaluez le niveau de risque de votre équipe
 
 ![Dashboard Preview](model_evaluation.png)
 
@@ -102,6 +105,7 @@ cd burnout-detector
 pip install -r requirements.txt
 
 # 3. Placer votre credentials.json (Google Cloud Console)
+# ⚠️ Ne JAMAIS committer ce fichier — il est dans .gitignore
 
 # 4. Lancer la collecte
 python main.py
@@ -129,6 +133,7 @@ Ce projet a été conçu avec la confidentialité comme priorité absolue :
 - [x] Pipeline de collecte Gmail + Calendar
 - [x] Modèle Random Forest entraîné
 - [x] Dashboard Streamlit déployé
+- [x] Quiz lead magnet (diagnostic gratuit)
 - [ ] Intégration Slack API
 - [ ] Mode multi-utilisateurs (équipes)
 - [ ] Alertes automatiques par email
@@ -142,10 +147,10 @@ Ce projet a été conçu avec la confidentialité comme priorité absolue :
 Projet développé par **Guetchine** — étudiant en data science (Gatineau/Ottawa, Canada), passionné par l'application concrète de l'IA pour résoudre des problèmes réels.
 
 **Intéressé par un pilote gratuit pour votre entreprise ?**
-Contactez-moi sur LinkedIn ou ouvrez une issue GitHub.
+Faites d'abord le [quiz diagnostic](https://guetchinejb-art.github.io/burnout-detector/quiz/), ou contactez-moi sur LinkedIn ou via une issue GitHub.
 
 ---
 
 ## Licence
 
-MIT — libre d'utilisation avec attribution.
+Propriétaire — Tous droits réservés © 2026 Guetchine.
