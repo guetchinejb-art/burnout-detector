@@ -133,17 +133,61 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ── Sélecteur de langue (sidebar) ─────────────────────────────────────────────
+# ── Sidebar ───────────────────────────────────────────────────────────────────
 if "lang" not in st.session_state:
     st.session_state.lang = "FR"
 
 with st.sidebar:
+
+    # — Langue
     st.session_state.lang = st.selectbox(
         "🌐 Langue / Language",
         options=["FR", "EN"],
         index=0 if st.session_state.lang == "FR" else 1,
         key="lang_selector"
     )
+
+    st.divider()
+
+    # — Profil utilisateur fictif
+    st.markdown("### 👤 Profil")
+    st.markdown("""
+    **Marie Tremblay**
+    Directrice RH · Acme Inc.
+    Gatineau, Canada
+    """)
+    st.caption("🔒 Données anonymisées" if st.session_state.lang == "FR" else "🔒 Anonymized data")
+
+    st.divider()
+
+    # — Filtre de période
+    periode_label = "📅 Période d'analyse" if st.session_state.lang == "FR" else "📅 Analysis period"
+    periode = st.selectbox(
+        periode_label,
+        options=["7 jours", "30 jours", "90 jours"] if st.session_state.lang == "FR" else ["7 days", "30 days", "90 days"],
+        index=1
+    )
+
+    st.divider()
+
+    # — Statistiques rapides (simulées pour la démo)
+    st.markdown("### 📊 Aperçu rapide" if st.session_state.lang == "FR" else "### 📊 Quick stats")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.metric("Score moy." if st.session_state.lang == "FR" else "Avg score", "62", "+8")
+    with col_b:
+        st.metric("Analyses" if st.session_state.lang == "FR" else "Runs", "14", "+2")
+    st.metric("Alertes actives" if st.session_state.lang == "FR" else "Active alerts", "3 🔴")
+
+    st.divider()
+
+    # — Liens rapides
+    st.markdown("### 🔗 Liens rapides" if st.session_state.lang == "FR" else "### 🔗 Quick links")
+    st.markdown("""
+- [🧪 Quiz diagnostic](https://guetchinejb-art.github.io/burnout-detector/quiz/)
+- [🌐 Landing page](https://guetchinejb-art.github.io/burnout-detector/)
+- [💻 GitHub](https://github.com/guetchinejb-art/burnout-detector)
+    """)
 
 T = TRANSLATIONS[st.session_state.lang]
 
